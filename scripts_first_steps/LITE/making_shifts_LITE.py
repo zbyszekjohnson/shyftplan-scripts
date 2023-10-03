@@ -16,10 +16,10 @@ user_email = os.environ['SHYFTPLAN_EMAIL']
 authentication_token = os.environ['SHYFTPLAN_JUSH_API_KEY']
 
 # DO WYFILTROWANIA OSTATNICH SHYFTPLANÓW, np. jeśli stworzyłeś je 18.08.2023 - to wpisz tą datę lub dzień wczesniej :)
-created_after = "07.09.2023"
+created_after = "28.09.2023"
 
 # Data na jaka wrzucasz zmiany :)
-today = datetime.date(2023, 9, 17)
+today = datetime.date(2023, 10, 8)
 
 
 def api_call_locations_position_id():

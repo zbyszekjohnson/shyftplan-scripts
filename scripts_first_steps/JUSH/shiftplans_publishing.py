@@ -6,7 +6,7 @@ url = "https://shyftplan.com/api/v1/staff_shifts"
 user_email = os.environ['SHYFTPLAN_EMAIL']
 authentication_token = os.environ['SHYFTPLAN_JUSH_API_KEY']
 # UZYWAJ TEJ DATY DO WYFILTORWANIA OSTATNICH TYGODNI GRAFIKOWYCH np. jak stworzyłeś nowe grafiki 18.07 to ustaw na dzien przed aby do skryptu uzywalo tylko najnowyszch
-created_after = "07.09.2023"
+created_after = "28.09.2023"
 
 
 def api_call_shiftplans(user_email, authentication_token, created_after):

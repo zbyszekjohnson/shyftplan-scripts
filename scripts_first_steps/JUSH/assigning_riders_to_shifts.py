@@ -12,7 +12,7 @@ url = "https://shyftplan.com/api/v1/staff_shifts"
 user_email = os.environ['SHYFTPLAN_EMAIL']
 authentication_token = os.environ['SHYFTPLAN_JUSH_API_KEY']
 # UZYWAJ TEJ DATY DO WYFILTORWANIA OSTATNICH TYGODNI GRAFIKOWYCH np. jak stworzyłeś nowe grafiki 18.07 to ustaw na dzien przed aby do skryptu uzywalo tylko najnowyszch
-created_after = "07.09.2023"
+created_after = "28.09.2023"
 
 # Process data and create dictionary
 shift_preferences = {}
@@ -101,13 +101,13 @@ for item in locations_positions["items"]:
 
 # Define a week starting from a specific date
 week = {
-    "poniedziałek": datetime.date(2023, 9, 11),
-    "wtorek": datetime.date(2023, 9, 12),
-    "środa": datetime.date(2023, 9, 13),
-    "czwartek": datetime.date(2023, 9, 14),
-    "piątek": datetime.date(2023, 9, 15),
-    "sobota": datetime.date(2023, 9, 16),
-    "niedziela": datetime.date(2023, 9, 17),
+    "poniedziałek": datetime.date(2023, 10, 2),
+    "wtorek": datetime.date(2023, 10, 3),
+    "środa": datetime.date(2023, 10, 4),
+    "czwartek": datetime.date(2023, 10, 5),
+    "piątek": datetime.date(2023, 10, 6),
+    "sobota": datetime.date(2023, 10, 7),
+    "niedziela": datetime.date(2023, 10, 8),
 }
 
 # STWORZENIE SHIFT_PREFERENCES
