@@ -192,6 +192,8 @@ class MainApp:
         for index, row in records.iterrows():
             self.airtable.update_record(
                 row['airtable_id'], {"Ile_zmian": (row['shift_Count'])})
+            self.airtable.update_record(
+                row['airtable_id'], {"Active rider": True})
             time.sleep(0.5)
 
         for index, row in records_with_no_show.iterrows():
