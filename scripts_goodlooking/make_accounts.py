@@ -1,6 +1,5 @@
 import os
 import requests
-import logging
 import pandas as pd
 import time
 from pyairtable import Api
@@ -155,7 +154,7 @@ class ShyftplanAPI:
         api_call_data = api_call.json()
         shyftplan_id = api_call_data.get('id', None)
         return shyftplan_id
-    
+
     def return_user_id(self, api_call):
         api_call_data = api_call.json()
         shyftplan_user_id = api_call_data.get('user_id', None)
@@ -170,7 +169,7 @@ class ShyftplanAPI:
             user_id = None
         print("USER_ID: ", user_id, "EMAIL: ", email)
         return int(user_id)
-    
+
     def return_user_id_v3(self, email, shyftplan_data_v2):
         shyftplan_users_emails = shyftplan_data_v2
         user_id_row = shyftplan_users_emails[shyftplan_users_emails['email'] == email]
@@ -203,7 +202,7 @@ class ShyftplanAPI:
             }
         df = pd.DataFrame.from_dict(email_dict, orient="index")
         return df
-    
+
     def get_data_users_v2(self):
         accounts = self.fetch_accounts()
         email_dict = {}
@@ -477,8 +476,8 @@ def main():
         app.run()
 
     except Exception as inner_e:
-        configure_logger.error(
-            f"Problem with app.run: {inner_e}")
+        logger = configure_logger()
+        logger.error(f"Problem with app.run: {inner_e}")
         exit(1)
 
 
