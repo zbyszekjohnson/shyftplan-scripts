@@ -17,10 +17,10 @@ authentication_token = os.environ['SHYFTPLAN_JUSH_API_KEY']
 #use this to filter last shyftplan weeks - if you created them
 #at 20.08 - then use this date or day earlier. Very important
 #for creation shifts in right place
-created_after = "28.09.2023"
+created_after = "05.10.2023"
 
 #Write where you want to put shifts
-today = datetime.date(2023, 10, 8)
+today = datetime.date(2023, 10, 15)
 
 
 def api_call_locations_position_id():

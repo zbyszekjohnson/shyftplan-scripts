@@ -12,7 +12,7 @@ url = "https://shyftplan.com/api/v1/staff_shifts"
 user_email = os.environ['SHYFTPLAN_EMAIL']
 authentication_token = os.environ['SHYFTPLAN_JUSH_API_KEY']
 # UZYWAJ TEJ DATY DO WYFILTORWANIA OSTATNICH TYGODNI GRAFIKOWYCH np. jak stworzyłeś nowe grafiki 18.07 to ustaw na dzien przed aby do skryptu uzywalo tylko najnowyszch
-created_after = "28.09.2023"
+created_after = "5.10.2023"
 
 # Process data and create dictionary
 shift_preferences = {}
@@ -31,7 +31,7 @@ def api_call_shifts(created_after):
     shifts_list = []
 
     for page in range(1, 21):
-        url = f"https://shyftplan.com/api/v1/shifts?user_email=krystian.solopa%40lite.tech&authentication_token={authentication_token}&company_id=50272&page={page}&per_page=200&created_after={created_after}&only_open=true"
+        url = f"https://shyftplan.com/api/v1/shifts?user_email={user_email}&authentication_token={authentication_token}&company_id=50272&page={page}&per_page=200&created_after={created_after}&only_open=true"
         headers = {"accept": "application/json"}
         response = requests.get(url, headers=headers)
         shifts = response.json()
@@ -46,7 +46,7 @@ def api_call(employment_id, shift_id):
     payload = {
         "assign_to_connected": False,
         "ignore_conflicts": "false",
-        "user_email": "krystian.solopa@lite.tech",
+        "user_email": user_email,
         "authentication_token": authentication_token,
         "company_id": 50272,
         "shift_id": shift_id,
@@ -89,13 +89,13 @@ for item in locations_positions["items"]:
 
 # Define a week starting from a specific date
 week = {
-    "poniedziałek": datetime.date(2023, 10, 2),
-    "wtorek": datetime.date(2023, 10, 3),
-    "środa": datetime.date(2023, 10, 4),
-    "czwartek": datetime.date(2023, 10, 5),
-    "piątek": datetime.date(2023, 10, 6),
-    "sobota": datetime.date(2023, 10, 7),
-    "niedziela": datetime.date(2023, 10, 8),
+    "poniedziałek": datetime.date(2023, 10, 9),
+    "wtorek": datetime.date(2023, 10, 10),
+    "środa": datetime.date(2023, 10, 11),
+    "czwartek": datetime.date(2023, 10, 12),
+    "piątek": datetime.date(2023, 10, 13),
+    "sobota": datetime.date(2023, 10, 14),
+    "niedziela": datetime.date(2023, 10, 15),
 }
 
 # STWORZENIE SHIFT_PREFERENCES

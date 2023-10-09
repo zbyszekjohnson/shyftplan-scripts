@@ -9,8 +9,8 @@ import os
 user_email = os.environ['SHYFTPLAN_EMAIL']
 authentication_token = os.environ['SHYFTPLAN_JUSH_API_KEY']
 # DATY OD KIEDY DO KIEDY MA BYĆ SHIFTPLAN WEEK
-shiftplan_start_date = "02.10.2023"
-shiftplan_end_date = "08.10.2023"
+shiftplan_start_date = "09.10.2023"
+shiftplan_end_date = "15.10.2023"
 
 
 def api_call_load_locations(user_email, authentication_token):
