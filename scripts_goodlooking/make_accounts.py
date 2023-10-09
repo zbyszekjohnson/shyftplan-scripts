@@ -6,6 +6,8 @@ from pyairtable import Api
 from onfleet import Onfleet
 from logger import configure_logger
 from settings import Settings
+import sys
+import serwersms
 
 
 required_env_vars = ['ONFLEET_API_KEY_JUSH', 'AIRTABLE_API_KEY', 'AIRTABLE_APP_NAME',
@@ -341,6 +343,17 @@ class MainApp:
                 f"Brakujące zmienne środowiskowe: {', '.join(missing_vars)}")
             exit(1)
 
+    def confirmation_sms(self, phone_number):
+        api = serwersms.SerwerSMS(Settings.SERWER_SMS_API)
+        try:
+            params = {
+                'details': 'true'
+            }
+            response = api.message.send_sms(
+                phone_number, self.message_content, 'JUSH', params)
+        except Exception:
+            self.logger.error(f"Problem at sending sms")
+
     def init_airtable(self):
         return AirtableAPI(
             Settings.AIRTABLE_API_KEY, Settings.AIRTABLE_APP_NAME,
@@ -372,6 +385,9 @@ class MainApp:
             loc_pos_df = pd.DataFrame.from_dict(
                 locations_position_id_dict, orient="index")
             loc_pos_df.reset_index(drop=True, inplace=True)
+            with open('message.txt', 'r') as file:
+                self.message_content = file.read()
+
             for record in airtable_records:
                 self.process_airtable_record(
                     record, shyftplan_emails, loc_pos_df, onfleet_workers_phones, shyftplan_data, shyftplan_data_v2)
@@ -458,6 +474,7 @@ class MainApp:
                 script_logs = self.onfleet.process_record_onfleet(
                     self.airtable, airtable_id, phone_number,
                     onfleet_workers_phones, first_name, last_name, script_logs, of_id)
+
             except Exception:
                 script_logs = self.airtable.report_problem(
                     self, airtable_id, script_logs, "ONFLEET PROBLEM")
@@ -467,7 +484,10 @@ class MainApp:
                 e, f"Problem przy przetwarzaniu rekordu {airtable_id}")
             script_logs = self.airtable.report_problem(
                 self, airtable_id, script_logs, "OTHER PROBLEM")
-            exit(1)
+            return
+
+        # at the end of successful accounts creations
+        self.confirmation_sms(phone_number)
 
 
 def main():
