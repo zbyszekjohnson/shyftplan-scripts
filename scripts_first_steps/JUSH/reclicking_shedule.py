@@ -8,7 +8,6 @@ created_after = "2023-09-22"
 user_email = os.environ['SHYFTPLAN_EMAIL']
 authentication_token = os.environ['SHYFTPLAN_JUSH_API_KEY']
 company_id = "50272"
-shyftplan_id = "494278"
 
 def api_call_locations_position_id_list():
     url = f"https://shyftplan.com/api/v1/locations_positions?user_email={user_email}&authentication_token={authentication_token}&page=1&per_page=1000"

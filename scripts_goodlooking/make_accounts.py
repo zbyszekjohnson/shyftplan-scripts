@@ -467,8 +467,9 @@ class MainApp:
                     self.airtable.update_record(
                         airtable_id, {"shyftplan_user_id": f"{sh_id_airtable}"})
                 else:
-                    self.airtable.update_record(
-                        airtable_id, {"shyftplan_user_id": f"{sh_id};{sh_id_airtable}"})
+                    if sh_id != sh_id_airtable:
+                        self.airtable.update_record(
+                            airtable_id, {"shyftplan_user_id": f"{sh_id};{sh_id_airtable}"})
 
             try:
                 script_logs = self.onfleet.process_record_onfleet(
