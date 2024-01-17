@@ -1,239 +1,14 @@
 import os
-import requests
 import pandas as pd
-import time
 from pyairtable import Api
 from onfleet import Onfleet
 from logger import configure_logger
 from settings import Settings
-import sys
-import serwersms
 
 
 required_env_vars = ['ONFLEET_API_KEY_JUSH', 'AIRTABLE_API_KEY', 'AIRTABLE_APP_NAME',
                      'AIRTABLE_TABLE_NAME', 'AIRTABLE_VIEW_ACC_TO_CREATE',
-                     'AIRTABLE_VIEW_REMOVED_RIDERS', 'SHYFTPLAN_EMAIL', 'SHYFTPLAN_JUSH_API_KEY']
-
-
-class ShyftplanAPI:
-
-    BASE_URL = "https://shyftplan.com/api/v1/employments"
-    BASE_URL_V2 = "https://shyftplan.com/api/v2/employments"
-    BASE_URL_ADDING_USER = (f"https://shyftplan.com"
-                            f"/api/v1/employments_positions")
-
-    # we use it to filter exact locations_position_ids for
-    # different places. It is the easiest and less problematic method
-    POSITIONS_IDS = {
-        "Warszawa": [180917, 180916, 144125, 141083],
-        "Kraków": [180944, 180943, 146978, 146976],
-        "Gdańsk": [180964, 180945, 151665, 150400],
-        "Poznań": [151672, 149630, 149628],
-        "Katowice": [150585, 150580]
-    }
-
-    def __init__(self, email, token):
-        self.email = email
-        self.token = token
-        self.logger = configure_logger()
-
-    def _construct_url(self, page, per_page):
-        return (
-            f"{self.BASE_URL}?user_email={self.email}"
-            f"&authentication_token={self.token}"
-            f"&page={page}&per_page={per_page}"
-            f"&include_live_info=true&with_deleted=true&access_level=all"
-            f"&order_key=last_name&order_dir=asc&with_deleted=true"
-        )
-
-    def fetch_accounts(self):
-        MAX_ITERATIONS = 10
-        accounts_list = []
-        per_page = 1000
-        page = 1
-        headers = {"accept": "application/json"}
-
-        response = requests.get(self._construct_url(
-            page, per_page), headers=headers)
-
-        accounts = response.json()
-
-        total_items = accounts["total"]
-        total_pages = (total_items + per_page - 1) // per_page
-
-        accounts_list.extend(accounts["items"])
-
-        for page in range(2, total_pages + 1):
-            if page > MAX_ITERATIONS:
-                self.logger.error("MAX_ITERATIONS exceeded")
-                break
-            response = requests.get(self._construct_url(
-                page, per_page), headers=headers)
-            accounts = response.json()
-            accounts_list.extend(accounts["items"])
-
-        return accounts_list
-
-    def get_emails(self):
-        accounts = self.fetch_accounts()
-        return [account['email'] for account in accounts if account['email']]
-
-    def create_shyftplan_account(self, first_name, last_name,
-                                 email, phone_number):
-
-        payload = {
-            "sso_only": False,
-            "maximum_money_enabled": False,
-            "exit_month_payed_partially": False,
-            "user_email": self.email,
-            "authentication_token": self.token,
-            "company_id": 50272,
-            "first_name": first_name,
-            "last_name": last_name,
-            "email": email,
-            "phone_number": "+48" + phone_number,
-            "password": "jush1234"
-        }
-        headers = {
-            "accept": "application/json",
-            "content-type": "application/x-www-form-urlencoded"
-        }
-
-        response = requests.post(
-            self.BASE_URL_V2, data=payload, headers=headers)
-        return response
-
-    def adding_user_to_location_function(self,
-                                         shyftplan_user_id, locations_position_id):
-
-        payload = {
-            "user_email": self.email,
-            "authentication_token": self.token,
-            "employment_id": shyftplan_user_id,
-            "locations_position_id": locations_position_id
-        }
-        headers = {
-            "accept": "application/json",
-            "content-type": "application/json"
-        }
-
-        response = requests.post(
-            self.BASE_URL_ADDING_USER, json=payload, headers=headers)
-        # to do not overload API
-        time.sleep(0.5)
-        return response
-
-    def get_all_locations_position_id(self):
-
-        url = (f"https://shyftplan.com/api/v1/locations_positions"
-               f"?user_email={self.email}&authentication_token={self.token}"
-               f"&page=1&per_page=1000&")
-
-        headers = {"accept": "application/json"}
-        response = requests.get(url, headers=headers)
-        data = response.json()
-        return data.get("items", [])
-
-    def make_dict_from_data(self, raw_data):
-        dictionary = {}
-        for item in raw_data:
-            locations_position_id = item['id']
-            position_id = item['position_id']
-            dictionary[locations_position_id] = {
-                "locations_position_id": locations_position_id,
-                "position_id": position_id
-            }
-        return dictionary
-
-    def handle_shyftplan_error(self, email, api_call_status_code, record_id, airtable, script_logs):
-        self.logger.error(f"Błąd przy tworzeniu konta w Shyftplan dla {email}. "
-                          f"Kod statusu: {api_call_status_code}")
-        script_logs += f" // Shyftplan problem: Kod: {api_call_status_code}"
-        airtable.update_record(record_id, {"script_logs": script_logs})
-        return script_logs
-
-    def return_id(self, api_call):
-        api_call_data = api_call.json()
-        shyftplan_id = api_call_data.get('id', None)
-        return shyftplan_id
-
-    def return_user_id(self, api_call):
-        api_call_data = api_call.json()
-        shyftplan_user_id = api_call_data.get('user_id', None)
-        return shyftplan_user_id
-
-    def return_user_id_v2(self, email, shyftplan_data):
-        shyftplan_users_emails = shyftplan_data
-        user_id_row = shyftplan_users_emails[shyftplan_users_emails['email'] == email]
-        if not user_id_row.empty:
-            user_id = user_id_row.index[0]
-        else:
-            user_id = None
-        print("USER_ID: ", user_id, "EMAIL: ", email)
-        return int(user_id)
-
-    def return_user_id_v3(self, email, shyftplan_data_v2):
-        shyftplan_users_emails = shyftplan_data_v2
-        user_id_row = shyftplan_users_emails[shyftplan_users_emails['email'] == email]
-        if not user_id_row.empty:
-            id = user_id_row.index[0]
-        else:
-            id = None
-        print("ID: ", id, "EMAIL: ", email)
-        return int(id)
-
-    def adding_user_to_locations_process(self, city, loc_pos_df, shyftplan, shyftplan_user_id):
-        position_ids_for_city = ShyftplanAPI.POSITIONS_IDS[city]
-
-        for pos_id in position_ids_for_city:
-            matching_locations = loc_pos_df[loc_pos_df['position_id'] ==
-                                            pos_id]['locations_position_id'].tolist()
-
-            for loc_id in matching_locations:
-                shyftplan.adding_user_to_location_function(
-                    shyftplan_user_id, loc_id)
-
-    def get_data_users(self):
-        accounts = self.fetch_accounts()
-        email_dict = {}
-        for item in accounts:
-            user_id = item["id"]
-            user_email = item["email"]
-            email_dict[user_id] = {
-                "email": user_email
-            }
-        df = pd.DataFrame.from_dict(email_dict, orient="index")
-        return df
-
-    def get_data_users_v2(self):
-        accounts = self.fetch_accounts()
-        email_dict = {}
-        for item in accounts:
-            user_id = item["user_id"]
-            user_email = item["email"]
-            email_dict[user_id] = {
-                "email": user_email
-            }
-        df = pd.DataFrame.from_dict(email_dict, orient="index")
-        return df
-
-    def restore_user(self, user_id):
-
-        url = f"https://shyftplan.com/api/v1/employments/{user_id}/restore_employment"
-
-        payload = {
-            "user_email": Settings.SHYFTPLAN_EMAIL,
-            "authentication_token": Settings.SHYFTPLAN_JUSH_API_KEY,
-            "company_id": 50272
-        }
-        headers = {
-            "accept": "application/json",
-            "content-type": "application/json"
-        }
-
-        response = requests.post(url, json=payload, headers=headers)
-        if response.status_code == 201:
-            print("User restored")
+                     'AIRTABLE_VIEW_REMOVED_RIDERS']
 
 
 class AirtableAPI:
@@ -328,12 +103,9 @@ class OnfleetAPI:
 class MainApp:
     def __init__(self):
         self.logger = configure_logger()
-        self.check_env_vars()
         self.airtable = self.init_airtable()
-        self.shyftplan = self.init_shyftplan()
         self.onfleet = self.init_onfleet()
 
-    def check_env_vars(self):
         missing_vars = []
         for var in required_env_vars:
             if var not in os.environ:
@@ -343,26 +115,10 @@ class MainApp:
                 f"Brakujące zmienne środowiskowe: {', '.join(missing_vars)}")
             exit(1)
 
-    def confirmation_sms(self, phone_number):
-        api = serwersms.SerwerSMS(Settings.SERWER_SMS_API)
-        try:
-            params = {
-                'details': 'true'
-            }
-            response = api.message.send_sms(
-                phone_number, self.message_content, 'JUSH', params)
-        except Exception:
-            self.logger.error(f"Problem at sending sms")
-
     def init_airtable(self):
         return AirtableAPI(
             Settings.AIRTABLE_API_KEY, Settings.AIRTABLE_APP_NAME,
             Settings.AIRTABLE_TABLE_NAME
-        )
-
-    def init_shyftplan(self):
-        return ShyftplanAPI(
-            Settings.SHYFTPLAN_EMAIL, Settings.SHYFTPLAN_JUSH_API_KEY
         )
 
     def init_onfleet(self):
@@ -376,15 +132,6 @@ class MainApp:
                 self.logger.info("NO AIRTABLE RECORDS TO PROCESS...")
                 exit(0)
             onfleet_workers_phones = self.onfleet.get_workers_phone_numbers()
-            # shyftplan_emails = self.shyftplan.get_emails()
-            # shyftplan_data = self.shyftplan.get_data_users()
-            # shyftplan_data_v2 = self.shyftplan.get_data_users_v2()
-            # locations_position_id_dict_raw = self.shyftplan.get_all_locations_position_id()
-            # locations_position_id_dict = self.shyftplan.make_dict_from_data(
-            #     locations_position_id_dict_raw)
-            # loc_pos_df = pd.DataFrame.from_dict(
-            #     locations_position_id_dict, orient="index")
-            # loc_pos_df.reset_index(drop=True, inplace=True)
             with open('message.txt', 'r') as file:
                 self.message_content = file.read()
 
@@ -403,8 +150,7 @@ class MainApp:
             email, city, phone_number = fields['Adres e-mail'], fields['Miejscowość'], fields['Numer telefonu']
             script_logs, full_name = fields.get(
                 'script_logs', ""), fields["Imię i nazwisko"]
-            sh_id, of_id = fields.get('shyftplan_user_id', ""), fields.get(
-                'onfleet_rider_id', "")
+            of_id = fields.get('onfleet_rider_id', "")
             if phone_number.startswith("+48"):
                 phone_number = phone_number[3:]
             elif phone_number.startswith("48"):
@@ -421,55 +167,6 @@ class MainApp:
                 self.airtable.possible_bad_guy(airtable_id, script_logs)
                 return
 
-            # START of actions to process the record
-            # if email not in shyftplan_emails:
-                # api_call = self.shyftplan.create_shyftplan_account(
-                #     first_name, last_name, email, phone_number)
-                # shyftplan_user_id = self.shyftplan.return_id(api_call)
-                # sh_id_airtable = self.shyftplan.return_user_id(
-                #     api_call)
-
-                # if api_call.status_code == 201:
-                #     if not sh_id:
-                #         self.airtable.update_record(
-                #             airtable_id, {"shyftplan_user_id": f"{sh_id_airtable}"})
-                #     else:
-                #         self.airtable.update_record(
-                #             airtable_id, {"shyftplan_user_id": f"{sh_id};{sh_id_airtable}"})
-
-                # if api_call.status_code != 201:
-                #     script_logs = self.shyftplan.handle_shyftplan_error(
-                #         email, api_call.status_code, airtable_id, self.airtable, script_logs)
-                #     return
-                # print("Shyftplan done xd")
-                # self.airtable.update_record(
-                #      airtable_id, {"Shyftplan - wpisane": True})
-
-            # Adding this mail to list in case of duplicates
-            #     shyftplan_emails.append(email)
-            # # Adding to postions in Shyftplan
-            #     if city in ShyftplanAPI.POSITIONS_IDS:
-            #         self.shyftplan.adding_user_to_locations_process(
-            #             city, loc_pos_df, self.shyftplan, shyftplan_user_id)
-
-            # Case when record had shyftplan before
-            # else:
-                # shyftplan_user_id = self.shyftplan.return_user_id_v2(
-                #     email, shyftplan_data)
-                # sh_id_airtable = self.shyftplan.return_user_id_v3(
-                #     email, shyftplan_data_v2)
-                # self.shyftplan.restore_user(shyftplan_user_id)
-                # print('good')
-                # self.shyftplan.adding_user_to_locations_process(
-                #     city, loc_pos_df, self.shyftplan, shyftplan_user_id)
-                # if not sh_id:
-                #     self.airtable.update_record(
-                #         airtable_id, {"shyftplan_user_id": f"{sh_id_airtable}"})
-                # else:
-                #     if sh_id != sh_id_airtable:
-                #         self.airtable.update_record(
-                #             airtable_id, {"shyftplan_user_id": f"{sh_id};{sh_id_airtable}"})
-
             try:
                 script_logs = self.onfleet.process_record_onfleet(
                     self.airtable, airtable_id, phone_number,
@@ -485,9 +182,6 @@ class MainApp:
             script_logs = self.airtable.report_problem(
                 self, airtable_id, script_logs, "OTHER PROBLEM")
             return
-
-        # at the end of successful accounts creations
-        self.confirmation_sms(phone_number)
 
 
 def main():
