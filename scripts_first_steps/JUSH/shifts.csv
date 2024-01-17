@@ -1,28 +1,19 @@
-place,7-11,10-15,11-15,14-18,15-19,18-22,19-23:30
-Szarych Szeregów 11,4,2,6,0,8,0,9
-Solidarności 155,5,2,6,0,8,0,8
-Herbu Janina 5,3,2,3,0,5,0,6
-Człuchowska 35a,1,3,2,0,5,0,5
-Rydygiera 13,4,0,3,0,3,0,6
-Puławska 17,3,0,4,0,5,0,5
-Sielecka 35,2,0,2,0,4,0,3
-Dolna 41,3,2,3,0,5,0,6
-Lekka 3,6,1,7,0,9,0,9
-Elektryczna 2,3,1,5,0,5,0,6
-Grenadierów 11,4,2,3,0,8,0,8
-Hawajska 11,5,1,7,0,7,0,8
-Kamienna 1,4,1,4,0,5,0,5
-Lirowa 26,3,1,6,0,7,0,8
-Tarnowiecka 13,0,0,0,0,0,0,0
-Międzynarodowa 42,4,1,5,0,7,0,9
-Sikorskiego 3a,3,1,4,0,7,0,6
-Konstruktorska 13a,4,0,6,0,8,0,9
-Grochowskiego 5,0,0,0,0,0,0,0
-Sukiennicza 8,2,0,5,0,5,0,5
-Lekarska 1,1,0,2,0,3,0,3
-Mogilska 21,3,1,4,0,5,0,6
-Walerego Sławka 15,1,0,3,0,5,0,5
-Wrocławska 53B,2,2,2,0,6,0,6
-Fieldorfa 2,1,0,2,0,2,0,3
-Arkońska 6,1,1,3,0,4,0,3
-Rakoczego 19,3,1,2,0,4,0,4
+place,7-11,10-15,11-15,15-19,19-23:30
+Szarych Szeregów 11,4,0,8,9,8
+Solidarności 155,5,0,8,10,9
+Herbu Janina 5,3,0,4,5,5
+Człuchowska 35a,3,0,5,6,5
+Rydygiera 13,3,0,5,6,5
+Puławska 17,0,0,0,0,0
+Sielecka 35,4,0,5,6,5
+Dolna 41,3,0,5,5,5
+Lekka 3,5,0,8,8,8
+Elektryczna 2,3,0,6,7,7
+Grenadierów 11,5,0,6,5,6
+Hawajska 11,4,0,6,9,9
+Kamienna 1,4,0,5,7,5
+Lirowa 26,2,0,8,8,9
+Tarnowiecka 13,0,0,0,0,0
+Międzynarodowa 42,5,0,7,8,8
+Sikorskiego 3a,4,0,5,7,7
+Konstruktorska 13a,5,0,5,8,6

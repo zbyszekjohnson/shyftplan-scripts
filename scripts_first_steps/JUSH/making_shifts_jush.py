@@ -17,9 +17,9 @@ authentication_token = os.environ['SHYFTPLAN_JUSH_API_KEY']
 pattern = r"^(e-Skuter Jush! - Zaufany Rider|Zaufany E-bike|Zaufany Rider)( - [A-Za-ząęśćółńżź]+)?$"
 
 # DO WYFILTROWANIA OSTATNICH SHYFTPLANÓW, np. jeśli stworzyłeś je 18.08.2023 - to wpisz tą datę lub dzień wczesniej :)
-created_after = "28.09.2023"
+created_after = "15.11.2023"
 # Dzień dzisiejszy dla testów - musimy zmodyfikować to na różne dni
-today = datetime.date(2023, 10, 8)
+today = datetime.date(2023, 11, 26)
 
 
 # Funkcja do API Call
@@ -193,7 +193,7 @@ def main():
         start_datetime = datetime.datetime.combine(
             today,
             start_time.time(),
-            tzinfo=datetime.timezone(datetime.timedelta(hours=2)),
+            tzinfo=datetime.timezone(datetime.timedelta(hours=1)),
         )
 
         # Jeśli zmiana kończy się po północy, dodajemy 1 dzień do daty końca
@@ -201,13 +201,13 @@ def main():
             end_datetime = datetime.datetime.combine(
                 today + datetime.timedelta(days=1),
                 end_time.time(),
-                tzinfo=datetime.timezone(datetime.timedelta(hours=2)),
+                tzinfo=datetime.timezone(datetime.timedelta(hours=1)),
             )
         else:
             end_datetime = datetime.datetime.combine(
                 today,
                 end_time.time(),
-                tzinfo=datetime.timezone(datetime.timedelta(hours=2)),
+                tzinfo=datetime.timezone(datetime.timedelta(hours=1)),
             )
         starts_at_iso = start_datetime.isoformat()
         ends_at_iso = end_datetime.isoformat()

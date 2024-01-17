@@ -4,7 +4,7 @@ import time
 import os
 
 # UZYWAJ TEJ DATY DO WYFILTORWANIA OSTATNICH TYGODNI GRAFIKOWYCH np. jak stworzyłeś nowe grafiki 18.07 to ustaw na dzien przed aby do skryptu uzywalo tylko najnowyszch
-created_after = "2023-09-22"
+created_after = "2023-11-01"
 user_email = os.environ['SHYFTPLAN_EMAIL']
 authentication_token = os.environ['SHYFTPLAN_JUSH_API_KEY']
 company_id = "50272"

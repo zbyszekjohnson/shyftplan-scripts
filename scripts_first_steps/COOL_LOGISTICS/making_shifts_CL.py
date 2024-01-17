@@ -17,11 +17,10 @@ authentication_token = os.environ['SHYFTPLAN_JUSH_API_KEY']
 #use this to filter last shyftplan weeks - if you created them
 #at 20.08 - then use this date or day earlier. Very important
 #for creation shifts in right place
-created_after = "28.09.2023"
+created_after = "11.1.2024"
 
 #Write where you want to put shifts
-today = datetime.date(2023, 10, 8)
-
+today = datetime.date(2024, 1, 21)
 
 def api_call_locations_position_id():
     url = (f"https://shyftplan.com/api/v1/locations_positions?"
@@ -167,7 +166,7 @@ def main():
         start_datetime = datetime.datetime.combine(
             today,
             start_time.time(),
-            tzinfo=datetime.timezone(datetime.timedelta(hours=2)),
+            tzinfo=datetime.timezone(datetime.timedelta(hours=1)),
         )
 
         # Jeśli zmiana kończy się po północy, dodajemy 1 dzień do daty końca
@@ -175,13 +174,13 @@ def main():
             end_datetime = datetime.datetime.combine(
                 today + datetime.timedelta(days=1),
                 end_time.time(),
-                tzinfo=datetime.timezone(datetime.timedelta(hours=2)),
+                tzinfo=datetime.timezone(datetime.timedelta(hours=1)),
             )
         else:
             end_datetime = datetime.datetime.combine(
                 today,
                 end_time.time(),
-                tzinfo=datetime.timezone(datetime.timedelta(hours=2)),
+                tzinfo=datetime.timezone(datetime.timedelta(hours=1)),
             )
 
         # Zmieniamy z 2023-06-18 07:00:00+02:00

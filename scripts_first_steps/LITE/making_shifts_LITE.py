@@ -16,10 +16,10 @@ user_email = os.environ['SHYFTPLAN_EMAIL']
 authentication_token = os.environ['SHYFTPLAN_JUSH_API_KEY']
 
 # DO WYFILTROWANIA OSTATNICH SHYFTPLANÓW, np. jeśli stworzyłeś je 18.08.2023 - to wpisz tą datę lub dzień wczesniej :)
-created_after = "28.09.2023"
+created_after = "15.11.2023"
 
 # Data na jaka wrzucasz zmiany :)
-today = datetime.date(2023, 10, 8)
+today = datetime.date(2023, 11, 26)
 
 
 def api_call_locations_position_id():
@@ -155,7 +155,7 @@ def main():
         start_datetime = datetime.datetime.combine(
             today,
             start_time.time(),
-            tzinfo=datetime.timezone(datetime.timedelta(hours=2)),
+            tzinfo=datetime.timezone(datetime.timedelta(hours=1)),
         )
 
         # Jeśli zmiana kończy się po północy, dodajemy 1 dzień do daty końca
@@ -163,13 +163,13 @@ def main():
             end_datetime = datetime.datetime.combine(
                 today + datetime.timedelta(days=1),
                 end_time.time(),
-                tzinfo=datetime.timezone(datetime.timedelta(hours=2)),
+                tzinfo=datetime.timezone(datetime.timedelta(hours=1)),
             )
         else:
             end_datetime = datetime.datetime.combine(
                 today,
                 end_time.time(),
-                tzinfo=datetime.timezone(datetime.timedelta(hours=2)),
+                tzinfo=datetime.timezone(datetime.timedelta(hours=1)),
             )
 
         # Zmieniamy z 2023-06-18 07:00:00+02:00 ---> 2023-06-18T19:00:00+02:00 w formacie ISO itd.

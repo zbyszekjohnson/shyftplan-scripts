@@ -66,10 +66,10 @@ class ShyftplanAPI:
         return base_url
 
     def list_all_evaluations(self, state=None):
-        MAX_ITERATIONS = 50
+        MAX_ITERATIONS = 60
         today = datetime.date.today()
         print(today)
-        date_30_days_ago = today - datetime.timedelta(days=30)
+        date_30_days_ago = today - datetime.timedelta(days=60)
         updated_after = date_30_days_ago.strftime('%Y-%m-%d')
         print(updated_after)
 
@@ -102,7 +102,7 @@ class ShyftplanAPI:
         url = (f"https://shyftplan.com/api/v1/employments?user_email={self.email}"
                f"&authentication_token={self.token}&company_id=50272&"
                f"page=1&per_page=1000&include_live_info=true&"
-               f"with_deleted=false&access_level=all&order_key=last_name&order_dir=asc")
+               f"with_deleted=true&access_level=all&order_key=last_name&order_dir=asc")
         headers = {"accept": "application/json"}
         response = requests.get(url, headers=headers)
         data = response.json()
@@ -185,6 +185,30 @@ class MainApp:
         return df_filtered
 
     def run(self):
+        x = self.shyftplan.list_all_evaluations()
+        filtered_evaluations = [e for e in x if e['state'] != 'no_show']
+        pprint.pprint(filtered_evaluations)
+
+        # Przekształca datę i grupuje po user_id, zachowując najpóźniejszą datę
+        latest_dates = {}
+
+        for evaluation in filtered_evaluations:
+            user_id = evaluation['user_id']
+            date = datetime.datetime.strptime(
+                evaluation['evaluation_starts_at'], '%Y-%m-%dT%H:%M:%S.%f%z').date()
+
+            if user_id not in latest_dates or latest_dates[user_id] < date:
+                latest_dates[user_id] = date
+
+        # Wynik
+        result = [{'user_id': user_id, 'latest_date': str(
+            latest_date)} for user_id, latest_date in latest_dates.items()]
+
+        # # Wydrukuj wynik
+        # for item in result:
+        #     print(item)
+
+        pprint.pprint(x)
         records = self.get_records()
         records_with_no_show = self.get_records(state="no_show")
         print(records)

@@ -12,7 +12,7 @@ url = "https://shyftplan.com/api/v1/staff_shifts"
 user_email = os.environ['SHYFTPLAN_EMAIL']
 authentication_token = os.environ['SHYFTPLAN_JUSH_API_KEY']
 # UZYWAJ TEJ DATY DO WYFILTORWANIA OSTATNICH TYGODNI GRAFIKOWYCH np. jak stworzyłeś nowe grafiki 18.07 to ustaw na dzien przed aby do skryptu uzywalo tylko najnowyszch
-created_after = "28.09.2023"
+created_after = "15.11.2023"
 
 # Process data and create dictionary
 shift_preferences = {}
@@ -89,13 +89,13 @@ for item in locations_positions["items"]:
 
 # Define a week starting from a specific date
 week = {
-    "poniedziałek": datetime.date(2023, 10, 2),
-    "wtorek": datetime.date(2023, 10, 3),
-    "środa": datetime.date(2023, 10, 4),
-    "czwartek": datetime.date(2023, 10, 5),
-    "piątek": datetime.date(2023, 10, 6),
-    "sobota": datetime.date(2023, 10, 7),
-    "niedziela": datetime.date(2023, 10, 8),
+    "poniedziałek": datetime.date(2023, 11, 20),
+    "wtorek": datetime.date(2023, 11, 21),
+    "środa": datetime.date(2023, 11, 22),
+    "czwartek": datetime.date(2023, 11, 23),
+    "piątek": datetime.date(2023, 11, 24),
+    "sobota": datetime.date(2023, 11, 25),
+    "niedziela": datetime.date(2023, 11, 26),
 }
 
 # STWORZENIE SHIFT_PREFERENCES
@@ -125,19 +125,19 @@ for index, row in data.iterrows():
                 start_datetime = datetime.datetime.combine(
                     week[day],
                     start_time,
-                    tzinfo=datetime.timezone(datetime.timedelta(hours=2)),
+                    tzinfo=datetime.timezone(datetime.timedelta(hours=1)),
                 )
                 if end_time < start_time:
                     end_datetime = datetime.datetime.combine(
                         week[day] + datetime.timedelta(days=1),
                         end_time,
-                        tzinfo=datetime.timezone(datetime.timedelta(hours=2)),
+                        tzinfo=datetime.timezone(datetime.timedelta(hours=1)),
                     )
                 else:
                     end_datetime = datetime.datetime.combine(
                         week[day],
                         end_time,
-                        tzinfo=datetime.timezone(datetime.timedelta(hours=2)),
+                        tzinfo=datetime.timezone(datetime.timedelta(hours=1)),
                     )
 
                 # Convert to ISO format and remove seconds

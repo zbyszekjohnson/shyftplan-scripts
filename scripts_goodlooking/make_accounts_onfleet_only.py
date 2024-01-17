@@ -371,31 +371,31 @@ class MainApp:
     def run(self):
         try:
             airtable_records = self.airtable.fetch_records(
-                view=Settings.AIRTABLE_VIEW_ACC_TO_CREATE)
+                view=Settings.AIRTABLE_VIEW_ACC_BINK_TO_CREATE)
             if not airtable_records:
                 self.logger.info("NO AIRTABLE RECORDS TO PROCESS...")
                 exit(0)
             onfleet_workers_phones = self.onfleet.get_workers_phone_numbers()
-            shyftplan_emails = self.shyftplan.get_emails()
-            shyftplan_data = self.shyftplan.get_data_users()
-            shyftplan_data_v2 = self.shyftplan.get_data_users_v2()
-            locations_position_id_dict_raw = self.shyftplan.get_all_locations_position_id()
-            locations_position_id_dict = self.shyftplan.make_dict_from_data(
-                locations_position_id_dict_raw)
-            loc_pos_df = pd.DataFrame.from_dict(
-                locations_position_id_dict, orient="index")
-            loc_pos_df.reset_index(drop=True, inplace=True)
+            # shyftplan_emails = self.shyftplan.get_emails()
+            # shyftplan_data = self.shyftplan.get_data_users()
+            # shyftplan_data_v2 = self.shyftplan.get_data_users_v2()
+            # locations_position_id_dict_raw = self.shyftplan.get_all_locations_position_id()
+            # locations_position_id_dict = self.shyftplan.make_dict_from_data(
+            #     locations_position_id_dict_raw)
+            # loc_pos_df = pd.DataFrame.from_dict(
+            #     locations_position_id_dict, orient="index")
+            # loc_pos_df.reset_index(drop=True, inplace=True)
             with open('message.txt', 'r') as file:
                 self.message_content = file.read()
 
             for record in airtable_records:
                 self.process_airtable_record(
-                    record, shyftplan_emails, loc_pos_df, onfleet_workers_phones, shyftplan_data, shyftplan_data_v2)
+                    record, onfleet_workers_phones)
         except Exception as e:
             self.logger.error(f"Problem before processing records: {e}")
             exit(1)
 
-    def process_airtable_record(self, record, shyftplan_emails, loc_pos_df, onfleet_workers_phones, shyftplan_data, shyftplan_data_v2):
+    def process_airtable_record(self, record, onfleet_workers_phones):
         try:
             df = self.airtable.deleted_riders_df()
             fields = record['fields']
@@ -422,54 +422,53 @@ class MainApp:
                 return
 
             # START of actions to process the record
-            if email not in shyftplan_emails:
-                api_call = self.shyftplan.create_shyftplan_account(
-                    first_name, last_name, email, phone_number)
-                shyftplan_user_id = self.shyftplan.return_id(api_call)
-                sh_id_airtable = self.shyftplan.return_user_id(
-                    api_call)
+            # if email not in shyftplan_emails:
+                # api_call = self.shyftplan.create_shyftplan_account(
+                #     first_name, last_name, email, phone_number)
+                # shyftplan_user_id = self.shyftplan.return_id(api_call)
+                # sh_id_airtable = self.shyftplan.return_user_id(
+                #     api_call)
 
-                if api_call.status_code == 201:
-                    if not sh_id:
-                        self.airtable.update_record(
-                            airtable_id, {"shyftplan_user_id": f"{sh_id_airtable}"})
-                    else:
-                        self.airtable.update_record(
-                            airtable_id, {"shyftplan_user_id": f"{sh_id};{sh_id_airtable}"})
+                # if api_call.status_code == 201:
+                #     if not sh_id:
+                #         self.airtable.update_record(
+                #             airtable_id, {"shyftplan_user_id": f"{sh_id_airtable}"})
+                #     else:
+                #         self.airtable.update_record(
+                #             airtable_id, {"shyftplan_user_id": f"{sh_id};{sh_id_airtable}"})
 
-                if api_call.status_code != 201:
-                    script_logs = self.shyftplan.handle_shyftplan_error(
-                        email, api_call.status_code, airtable_id, self.airtable, script_logs)
-                    return
-
-                self.airtable.update_record(
-                    airtable_id, {"Shyftplan - wpisane": True})
+                # if api_call.status_code != 201:
+                #     script_logs = self.shyftplan.handle_shyftplan_error(
+                #         email, api_call.status_code, airtable_id, self.airtable, script_logs)
+                #     return
+                # print("Shyftplan done xd")
+                # self.airtable.update_record(
+                #      airtable_id, {"Shyftplan - wpisane": True})
 
             # Adding this mail to list in case of duplicates
-                shyftplan_emails.append(email)
-            # Adding to postions in Shyftplan
-                if city in ShyftplanAPI.POSITIONS_IDS:
-                    self.shyftplan.adding_user_to_locations_process(
-                        city, loc_pos_df, self.shyftplan, shyftplan_user_id)
+            #     shyftplan_emails.append(email)
+            # # Adding to postions in Shyftplan
+            #     if city in ShyftplanAPI.POSITIONS_IDS:
+            #         self.shyftplan.adding_user_to_locations_process(
+            #             city, loc_pos_df, self.shyftplan, shyftplan_user_id)
 
             # Case when record had shyftplan before
-            else:
-                shyftplan_user_id = self.shyftplan.return_user_id_v2(
-                    email, shyftplan_data)
-                sh_id_airtable = self.shyftplan.return_user_id_v3(
-                    email, shyftplan_data_v2)
-                self.shyftplan.restore_user(shyftplan_user_id)
-                self.airtable.update_record(
-                    airtable_id, {"Shyftplan - wpisane": True})
-                self.shyftplan.adding_user_to_locations_process(
-                    city, loc_pos_df, self.shyftplan, shyftplan_user_id)
-                if not sh_id:
-                    self.airtable.update_record(
-                        airtable_id, {"shyftplan_user_id": f"{sh_id_airtable}"})
-                else:
-                    if sh_id != sh_id_airtable:
-                        self.airtable.update_record(
-                            airtable_id, {"shyftplan_user_id": f"{sh_id};{sh_id_airtable}"})
+            # else:
+                # shyftplan_user_id = self.shyftplan.return_user_id_v2(
+                #     email, shyftplan_data)
+                # sh_id_airtable = self.shyftplan.return_user_id_v3(
+                #     email, shyftplan_data_v2)
+                # self.shyftplan.restore_user(shyftplan_user_id)
+                # print('good')
+                # self.shyftplan.adding_user_to_locations_process(
+                #     city, loc_pos_df, self.shyftplan, shyftplan_user_id)
+                # if not sh_id:
+                #     self.airtable.update_record(
+                #         airtable_id, {"shyftplan_user_id": f"{sh_id_airtable}"})
+                # else:
+                #     if sh_id != sh_id_airtable:
+                #         self.airtable.update_record(
+                #             airtable_id, {"shyftplan_user_id": f"{sh_id};{sh_id_airtable}"})
 
             try:
                 script_logs = self.onfleet.process_record_onfleet(
